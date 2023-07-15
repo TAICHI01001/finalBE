@@ -16,28 +16,22 @@ export interface WithContentId {
 // export type HandlerFunc = (Request, Response) => Promise<Response>;
 
 export interface IHandlerContent {
-  createContent(
-    req: AuthRequest<Request, WithContent>,
-    res: Response
-  ): Promise<Response>;
-  getContent(_, res: Response): Promise<Response>;
-  getContentById(
-    req: AuthRequest<WithContentId, WithContent>,
-    res: Response
-  ): Promise<Response>;
+  createContent: HandlerFunc<AppRequest<Empty, WithContent>>;
+  getContent: HandlerFunc<AuthRequest<Request, any>>;
+  getContentById: HandlerFunc<AuthRequest<WithId, any>>;
   // updateContent: HandlerFunc<AuthRequest<Request, any>>;
-  getUserContents(
-    req: AuthRequest<Empty, Empty>,
-    res: Response
-  ): Promise<Response>;
-  updateContent(
-    req: AuthRequest<WithContentId, WithContent>,
-    res: Response
-  ): Promise<Response>;
-  deleteContent(
-    req: AuthRequest<WithContentId, WithContent>,
-    res: Response
-  ): Promise<Response>;
+  // getUserContent(
+  //   req: AuthRequest<WithContentId, WithContent>,
+  //   res: Response
+  // ): Promise<Response>;
+  // updateContent(
+  //   req: AuthRequest<WithContentId, WithContent>,
+  //   res: Response
+  // ): Promise<Response>;
+  // deleteContent(
+  //   req: AuthRequest<WithContentId, WithContent>,
+  //   res: Response
+  // ): Promise<Response>;
 }
 
 //! export type HandlerFunc = (Request, Response) => Promise<Response>;

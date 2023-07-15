@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { IRepositoryContent } from "../repository";
-import { IHandlerContent, WithContent } from ".";
+import { IHandlerContent, WithContent, WithContentId } from ".";
 import { AuthRequest } from "../auth/jwt";
 import { ICreateContentDto } from "../entities";
 import { getVideoDetails } from ".";
@@ -59,7 +59,7 @@ class HandlerContent implements IHandlerContent {
   }
 
   async getContentById(
-    req: AuthRequest<any, any>,
+    req: AuthRequest<WithContentId, WithContent>,
     res: Response
   ): Promise<Response> {
     if (!req.params.id) {
@@ -128,7 +128,7 @@ class HandlerContent implements IHandlerContent {
   }
 
   async delateContent(
-    req: AuthRequest<any, any>,
+    req: AuthRequest<WithContentId, WithContent>,
     res: Response
   ): Promise<Response> {
     if (!req.params.id) {
@@ -157,8 +157,19 @@ class HandlerContent implements IHandlerContent {
       return res.status(500).json({ error: errMsg }).end();
     }
   }
+  async getUserContents(
+    req: AuthRequest<any, any>,
+    res: Response
+  ): Promise<Response> {
+    return this.repo
+      .getUserContents(req.payload.id)
+      .then((contents) => res.status(200).json(contents).end())
+      .catch((err) => {
+        console.error(`failed to get contents: ${err}`);
+        return res.status(500).json({ error: `failed to get contents` }).end();
+      });
+  }
 }
-
 //   async createContent(
 //     req:  AuthRequest<{}, ICreateContent>,
 //     res: Response
