@@ -28,7 +28,7 @@ class HandlerUser implements IHandlerUser {
     const { username, name, password } = req.body;
     if (!username || !name || !password) {
       return res
-        .status(200)
+        .status(500)
         .json(`You have entered incomplete information.`)
         .end();
     }
@@ -38,7 +38,10 @@ class HandlerUser implements IHandlerUser {
         name,
         password: hashPassword(password),
       });
-      return res.status(200).json(`${user} You are already signed in.`).end();
+      return res
+        .status(200)
+        .json(`${user.username}, ${user.name}  You are already signed in.`)
+        .end();
     } catch (err) {
       const errMsg = `failed to create user ${username}`;
       console.error(`${err} : ${errMsg}`);
@@ -64,7 +67,7 @@ class HandlerUser implements IHandlerUser {
       }
       const payload: Payload = {
         id: user.id,
-        username: user.usernames,
+        username: user.username,
       };
       const token = newJwt(payload);
 

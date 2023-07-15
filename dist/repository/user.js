@@ -10,16 +10,13 @@ class RepositoryUser {
         this.db = db;
     }
     async createUser(user) {
-        return await this.db.user
-            .create({
-            data: user,
-        })
-            .catch((err) => {
-            Promise.reject(`${err}`);
-        });
+        return await this.db.user.create({ data: user });
     }
     async getUser(username) {
-        return await this.db.user.finUnique({ where: { username } });
+        return await this.db.user.findUnique({ where: { username } });
+    }
+    async getId(id) {
+        return await this.db.user.findUnique({ where: { id } });
     }
 }
 //# sourceMappingURL=user.js.map

@@ -41,11 +41,11 @@ export interface HandlerContent {}
 
 //!============================================================================
 
-export interface IRepositoryUser {
-  createUser(user: ICreateUser): Promise<IUser>; //! When you createUser or Register, You should have {username,name,password}
-  getUser(username: string): Promise<IUser>; //! When you getUser or Login, You should have username,password
-  getId(id: string): Promise<IUser | null>;
-}
+// export interface IRepositoryUser {
+//   createUser(user: ICreateUser): Promise<IUser>; //! When you createUser or Register, You should have {username,name,password}
+//   getUser(username: string): Promise<IUser>; //! When you getUser or Login, You should have username,password
+//   getId(id: string): Promise<IUser | null>;
+// }
 
 export interface ICreateUser {
   username: string;

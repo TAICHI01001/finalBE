@@ -1,56 +1,190 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.newHandlerUse = void 0;
-function newHandlerUse(repo) {
-    return new HandlerUser(repo);
+exports.newHandlerUser = void 0;
+const bcrypt_1 = require("../auth/bcrypt");
+const jwt_1 = require("../auth/jwt");
+function newHandlerUser(repo, repoBlacklist) {
+    return new HandlerUser(repo, repoBlacklist);
 }
-exports.newHandlerUse = newHandlerUse;
+exports.newHandlerUser = newHandlerUser;
 class HandlerUser {
-    constructor(repo) {
+    constructor(repo, repoBlacklist) {
         this.repo = repo;
     }
     async register(req, res) {
-        const { username, password, name } = req.body;
-        if (!username || !password || !name) {
+        const { username, name, password } = req.body;
+        if (!username || !name || !password) {
             return res
-                .status(400)
-                .json({ error: `missing username or password` })
+                .status(500)
+                .json(`You have entered incomplete information.`)
                 .end();
         }
-        return this.repo
-            .createUser({ username, password, name })
-            .then(() => res.status(201).json().end())
-            .catch((error) => {
-            console.error(`${error}`);
-            return res.status(500).json();
-        });
+        try {
+            const user = await this.repo.createUser({
+                username,
+                name,
+                password: (0, bcrypt_1.hashPassword)(password),
+            });
+            return res
+                .status(200)
+                .json(`${user.username}, ${user.name}  You are already signed in.`)
+                .end();
+        }
+        catch (err) {
+            const errMsg = `failed to create user ${username}`;
+            console.error(`${err} : ${errMsg}`);
+            return res.status(500).json(`${errMsg}`).end();
+        }
     }
     async login(req, res) {
         const { username, password } = req.body;
         if (!username || !password) {
-            return res.status(400).json().end();
+            return res.status(201).json().end();
         }
-        return this.repo
-            .getUser(username)
-            .then(() => {
-            if (password) {
-                return res
-                    .status(401)
-                    .json({ error: `invalid username or password` })
-                    .end();
+        try {
+            const user = await this.repo.getUser(username);
+            if (!user) {
+                return res.status(404).json().end();
             }
-            return (res
+            if (!(0, bcrypt_1.compareHash)(password, user.password)) {
+                return res.status(401).json().end();
+            }
+            const payload = {
+                id: user.id,
+                username: user.username,
+            };
+            const token = (0, jwt_1.newJwt)(payload);
+            return res
                 .status(200)
-                .json({} `logged in`));
-        })
-            .end();
-        ;
+                .json({
+                status: "login success",
+                accessToken: token,
+            })
+                .end();
+        }
+        catch (err) {
+            return res.status(500).json().end();
+        }
     }
-    catch() { }
+    async logout(req, res) {
+        return this.repoBlacklist
+            .addToBlackList(req.token)
+            .then(() => res.status(200).json({ status: `logged out successfully` }).end())
+            .catch((err) => {
+            const errMsg = `failed to logout`;
+            console.error(`${errMsg}: ${err}`);
+            return res.status(500).json({ error: `failed to logout` });
+        });
+    }
+    async getId(req, res) {
+        if (!req.payload.id) {
+            return res.status(400).json({ error: "wrong username or password" });
+        }
+        console.log(req.payload.id);
+        return this.repo
+            .getId(req.payload.id)
+            .then((user) => res.status(200).json(user))
+            .catch((err) => {
+            const errMsg = `failed to get id`;
+            console.error(`${errMsg}: ${err}`);
+            return res.status(500).json({ error: `failed to get id` });
+        });
+    }
 }
-(error) => {
-    console.error(`failed to get user${error}`);
-    return res.status(500).end();
-};
-;
+// import { Request, Response } from "express";
+// import { IRepositoryUser } from "../repository";
+// import { IHandlerUser, AppRequest, Empty, WithUser } from ".";
+// export function newHandlerUse(repo: IRepositoryUser): IHandlerUser {
+//   return new HandlerUser(repo);
+// }
+// class HandlerUser implements IHandlerUser {
+//   private repo: IRepositoryUser;
+//   constructor(repo: IRepositoryUser) {
+//     this.repo = repo;
+//   }
+//   async register(
+//     req: Request,
+//     res: Response
+//   ): Promise<Response> {
+//     const { username, password, name } = req.body;
+//     if (!username || !password || !name) {
+//       return res
+//         .status(400)
+//         .json({ error: `missing username or password` })
+//         .end();
+//     }
+//     return this.repo
+//       .createUser({ username, password, name })
+//       .then(() => res.status(201).json().end())
+//       .catch((error) => {
+//         console.error(`${error}`);
+//         return res.status(500).json();
+//       });
+//   }
+//   async login(
+//     req: AppRequest<Empty, WithUser>,
+//     res: Response
+//   ): Promise<Response> {
+//     const { username, password } = req.body;
+//     if (!username || !password) {
+//       return res.status(400).json().end();
+//     }
+//     return this.repo
+//       .getUser(username)
+//       .then(() => {
+//         if (password) {
+//           return res
+//             .status(401)
+//             .json({ error: `invalid username or password` })
+//             .end();
+//         }
+//         return (
+//           res
+//             .status(200)
+//             .json({`logged in`})
+//             .end()
+//         );
+//       })
+//       .catch((error) => {
+//         console.error(`failed to get user${error}`);
+//         return res.status(500).end();
+//       });
+//   }
+// }
+// register(req,res){
+//   const {username,name,password} = req.body;
+//   if(!username||!name||!password){
+//     return res.status().json.end()
+//   }
+//   try{
+//     const user = this.repo.createUser(
+//       {
+//         username,name,password:Hash(password)
+//       });
+// return res.status().json().end()
+//   }catch(err)=>{
+//     const errMsg = `${username}`
+//     console.log(`${err}`);
+//     return res.status().json().end()
+//   }
+// }
+// login(req,res){
+//   const {username,password} = req.body;
+//   if(!username||!password){
+//     return res.status().json().end()
+//   }
+//   try{
+//     const user = this.repo.getUser(username)
+//     if(!user){
+//       return res.status().json().end()
+//     }
+//     if(!compareHash(password,user.password)){
+//       return res.status().json().end()
+//     }
+//     return res.status().json().end()
+//   }catch(err){
+//     console.log(`${err}`);
+//     res.status().json().end()
+//   }
+// }
 //# sourceMappingURL=user.js.map

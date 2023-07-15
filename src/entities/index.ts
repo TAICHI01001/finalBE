@@ -11,8 +11,8 @@ export type IUserDto = {
 
 export interface ICreateUser {
   username: string;
-  password: string;
   name: string;
+  password: string;
 }
 
 export interface ICreateContentDto {

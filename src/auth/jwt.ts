@@ -14,6 +14,8 @@ export interface AuthRequest<Params, Body> extends Request<Params, any, Body> {
 }
 
 export function newJwt(payload: Payload): string {
+  console.log(secret);
+
   return jwt.sign(payload, secret, {
     algorithm: "HS512",
     expiresIn: "12h",
@@ -54,6 +56,8 @@ class HandlerMiddleware implements IHandlerMiddleware {
       if (isBlacklisted) {
         return res.status(401).json({ error: `token is blacklist` }).end();
       }
+      console.log(`${secret}`);
+
       const decoded = jwt.verify(token, secret);
       const id = decoded["id"];
       const username = decoded["username"];

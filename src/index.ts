@@ -24,7 +24,7 @@ async function main() {
   const repoUser = newRepositoryUser(db);
   const repoBlacklist = newRepositoryBlacklist(redis);
   const handlerUser = newHandlerUser(repoUser, repoBlacklist);
-  const handlerMiddlerware = newHandlerMiddleware(repoBlacklist);
+  const handlerMiddleware = newHandlerMiddleware(repoBlacklist);
   const repoContent = newRepositoryContent(db);
   const handlerContent = newHandlerContent(repoContent);
 
@@ -33,9 +33,9 @@ async function main() {
   const userRouter = express.Router();
   const contentRouter = express.Router();
   const authRouter = express.Router();
-  const cors = require("cors");
+  // const cors = require("cors");
 
-  server.use(cors());
+  // server.use(cors());
   server.use(express.json());
   server.use(express.urlencoded({ extended: false }));
 
@@ -49,31 +49,32 @@ async function main() {
   });
 
   // User API
-  userRouter.post("/", handlerUser.register.bind(handlerUser));
+  userRouter.post("/register", handlerUser.register.bind(handlerUser));
   authRouter.post("/login", handlerUser.login.bind(handlerUser));
   authRouter.get(
     "/me",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
+    handlerMiddleware.jwtMiddleware.bind(handlerMiddleware),
     handlerUser.getId.bind(handlerUser)
   );
   authRouter.get(
     "/logout",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
+    handlerMiddleware.jwtMiddleware.bind(handlerMiddleware),
     handlerUser.logout.bind(handlerUser)
   );
 
   // Content API
   contentRouter.post(
     "/",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
+    handlerMiddleware.jwtMiddleware.bind(handlerMiddleware),
     handlerContent.createContent.bind(handlerContent)
   );
   // (Optional) Add usercontent
-  contentRouter.get(
-    "/usercontent",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
-    handlerContent.getContent.bind(handlerContent)
-  );
+  // contentRouter.get(
+  //   "/usercsontent",
+  //   handlerMiddleware.jwtMiddleware.bind(handlerMiddleware),
+  //   handlerContent.getContent.bind(handlerContent)
+  // );
+
   contentRouter.get("/", handlerContent.getContent.bind(handlerContent));
   contentRouter.get("/:id", handlerContent.getContentById.bind(handlerContent));
   // contentRouter.post("/update", async (_, res) => {
@@ -81,13 +82,13 @@ async function main() {
   // });
   contentRouter.patch(
     "/:id",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
-    handlerContent.updateContent.bind(handlerContent)
+    handlerMiddleware.jwtMiddleware.bind(handlerMiddleware)
+    // handlerContent.updateContent.bind(handlerContent)
   );
   contentRouter.delete(
     "/:id",
-    handlerMiddlerware.jwtMiddleware.bind(handlerMiddlerware),
-    handlerContent.deleteContent.bind(handlerContent)
+    handlerMiddleware.jwtMiddleware.bind(handlerMiddleware)
+    // handlerContent.deleteContent.bind(handlerContent)
   );
 
   // server
